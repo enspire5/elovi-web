@@ -19,8 +19,7 @@ const TABS: { id: Tab; icon: string; label: string }[] = [
   { id: 'journal',  icon: '✎', label: 'Journal' },
 ]
 
-const BGM_OGG = 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Gymnop%C3%A9die_No._1_%28piano%29.ogg'
-const BGM_MP3 = 'https://upload.wikimedia.org/wikipedia/commons/transcoded/e/e6/Gymnop%C3%A9die_No._1_%28piano%29.ogg/Gymnop%C3%A9die_No._1_%28piano%29.ogg.mp3'
+const BGM_SRC = '/audio/bgm.mp3'
 
 export default function App() {
   const [tab, setTab]               = useState<Tab>('today')
@@ -155,11 +154,7 @@ export default function App() {
         })}
       </nav>
 
-      {/* BGM audio — MP3 first for Safari/iOS compatibility, OGG fallback */}
-      <audio ref={audioRef} loop preload="none">
-        <source src={BGM_MP3} type="audio/mpeg" />
-        <source src={BGM_OGG} type="audio/ogg" />
-      </audio>
+      <audio ref={audioRef} src={BGM_SRC} loop preload="none" />
     </div>
   )
 }

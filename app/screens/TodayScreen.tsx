@@ -109,8 +109,8 @@ export default function TodayScreen({ bgmPlaying, onBgmToggle, pauseBgm, resumeB
   }
 
   const handleBgmToggle = useCallback(() => {
-    dismissHint()
     onBgmToggle()
+    dismissHint()
   }, [onBgmToggle])
 
   // Stop speech when unmounting
@@ -157,15 +157,22 @@ export default function TodayScreen({ bgmPlaying, onBgmToggle, pauseBgm, resumeB
           <button
             onClick={handleBgmToggle}
             title={bgmPlaying ? 'Pause music' : 'Play background music'}
+            className={bgmPlaying ? 'bgm-playing' : ''}
             style={{
-              border: `1px solid ${bgmPlaying ? 'var(--gold-border)' : 'rgba(200,168,74,0.35)'}`,
+              border: `1px solid ${bgmPlaying ? 'var(--gold)' : 'rgba(200,168,74,0.35)'}`,
               borderRadius: 6,
               padding: '4px 9px',
               color: bgmPlaying ? 'var(--gold)' : 'rgba(200,168,74,0.65)',
               fontSize: 14,
               background: bgmPlaying ? 'var(--gold-dim)' : 'transparent',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
             }}
-          >♪</button>
+          >
+            <span>♪</span>
+            {bgmPlaying && <span style={{ fontFamily: 'var(--font-cinzel)', fontSize: 8, letterSpacing: '0.1em' }}>ON</span>}
+          </button>
         </div>
       </div>
 
