@@ -1,0 +1,22 @@
+# dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# env
+.env.local
+.env*.local
+
+# build output
+dist/
+
+# OS
+.DS_Store
+
+# debug
+npm-debug.log*
+
+# sharp (icon generation, run locally only)
+generate-icons.js
