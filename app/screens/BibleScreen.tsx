@@ -1,14 +1,8 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { supabase } from '../../lib/supabase'
 
-interface VerseRow {
-  verse: number
-  text_en: string
-  reference: string
-}
-
+interface VerseRow { verse: number; text: string }
 interface Book { name: string; chapters: number }
 
 const OT: Book[] = [
@@ -55,7 +49,7 @@ const ALL_BOOKS = [...OT, ...NT]
 
 type View = 'books' | 'chapters' | 'reader'
 
-const label = {
+const labelStyle = {
   fontFamily: 'var(--font-cinzel)',
   fontSize: 9,
   letterSpacing: '0.2em',
@@ -64,13 +58,24 @@ const label = {
   marginBottom: 14,
 }
 
+async function fetchChapter(bookName: string, chapter: number): Promise<VerseRow[]> {
+  const slug = bookName.toLowerCase().replace(/\s+/g, '+')
+  const url = `https://bible-api.com/${slug}+${chapter}?translation=kjv`
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const data = await res.json() as { verses?: { verse: number; text: string }[] }
+  if (!data.verses || data.verses.length === 0) return []
+  return data.verses.map(v => ({ verse: v.verse, text: v.text.trim() }))
+}
+
 export default function BibleScreen() {
-  const [query, setQuery] = useState('')
-  const [view, setView] = useState<View>('books')
-  const [activeBook, setActiveBook] = useState<Book | null>(null)
+  const [query, setQuery]               = useState('')
+  const [view, setView]                 = useState<View>('books')
+  const [activeBook, setActiveBook]     = useState<Book | null>(null)
   const [activeChapter, setActiveChapter] = useState<number | null>(null)
-  const [verses, setVerses] = useState<VerseRow[]>([])
-  const [loading, setLoading] = useState(false)
+  const [verses, setVerses]             = useState<VerseRow[]>([])
+  const [loading, setLoading]           = useState(false)
+  const [error, setError]               = useState<string | null>(null)
 
   const filtered = useMemo(() => {
     if (!query.trim()) return null
@@ -89,21 +94,19 @@ export default function BibleScreen() {
     setActiveChapter(chapter)
     setLoading(true)
     setVerses([])
+    setError(null)
     setView('reader')
     try {
-      const { data } = await supabase
-        .from('daily_verses')
-        .select('verse, text_en, reference')
-        .eq('book', activeBook.name)
-        .eq('chapter', chapter)
-        .order('verse')
-      setVerses((data as VerseRow[]) ?? [])
-    } catch {}
+      const rows = await fetchChapter(activeBook.name, chapter)
+      setVerses(rows)
+    } catch {
+      setError('Unable to load chapter. Please check your connection.')
+    }
     setLoading(false)
   }
 
   const back = () => {
-    if (view === 'reader') { setView('chapters'); setVerses([]) }
+    if (view === 'reader') { setView('chapters'); setVerses([]); setError(null) }
     else if (view === 'chapters') { setView('books'); setActiveBook(null) }
   }
 
@@ -113,6 +116,7 @@ export default function BibleScreen() {
 
   return (
     <div style={{ padding: '16px 20px 30px' }}>
+
       {/* Back button */}
       {view !== 'books' && (
         <button
@@ -134,14 +138,11 @@ export default function BibleScreen() {
           />
           {otFiltered.length > 0 && (
             <>
-              <div style={label}>Old Testament</div>
+              <div style={labelStyle}>Old Testament</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
                 {otFiltered.map(book => (
-                  <button
-                    key={book.name}
-                    onClick={() => openBook(book)}
-                    style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'var(--font-cormorant)', fontSize: 14 }}
-                  >
+                  <button key={book.name} onClick={() => openBook(book)}
+                    style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'var(--font-cormorant)', fontSize: 14 }}>
                     {book.name}
                   </button>
                 ))}
@@ -150,14 +151,11 @@ export default function BibleScreen() {
           )}
           {ntFiltered.length > 0 && (
             <>
-              <div style={label}>New Testament</div>
+              <div style={labelStyle}>New Testament</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {ntFiltered.map(book => (
-                  <button
-                    key={book.name}
-                    onClick={() => openBook(book)}
-                    style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'var(--font-cormorant)', fontSize: 14 }}
-                  >
+                  <button key={book.name} onClick={() => openBook(book)}
+                    style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontFamily: 'var(--font-cormorant)', fontSize: 14 }}>
                     {book.name}
                   </button>
                 ))}
@@ -173,14 +171,11 @@ export default function BibleScreen() {
           <div style={{ fontFamily: 'var(--font-cinzel)', color: 'var(--gold)', fontSize: 16, letterSpacing: '0.1em', marginBottom: 20 }}>
             {activeBook.name}
           </div>
-          <div style={label}>Select Chapter</div>
+          <div style={labelStyle}>Select Chapter</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(44px, 1fr))', gap: 8 }}>
             {Array.from({ length: activeBook.chapters }, (_, i) => i + 1).map(ch => (
-              <button
-                key={ch}
-                onClick={() => openChapter(ch)}
-                style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 4px', color: 'var(--muted)', fontFamily: 'var(--font-cinzel)', fontSize: 12, textAlign: 'center' }}
-              >
+              <button key={ch} onClick={() => openChapter(ch)}
+                style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 4px', color: 'var(--muted)', fontFamily: 'var(--font-cinzel)', fontSize: 12, textAlign: 'center' }}>
                 {ch}
               </button>
             ))}
@@ -199,38 +194,35 @@ export default function BibleScreen() {
           </div>
 
           {loading && (
-            <div style={{ color: 'var(--dim)', fontFamily: 'var(--font-cormorant)', fontSize: 16, textAlign: 'center', padding: '40px 0' }}>
+            <div style={{ color: 'var(--muted)', fontFamily: 'var(--font-cormorant)', fontSize: 16, textAlign: 'center', padding: '40px 0' }}>
               Loading…
             </div>
           )}
 
-          {!loading && verses.length === 0 && (
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 28, textAlign: 'center' }}>
-              <div style={{ fontSize: 24, marginBottom: 12 }}>✝</div>
-              <div style={{ fontFamily: 'var(--font-cinzel)', color: 'var(--gold)', fontSize: 12, letterSpacing: '0.1em', marginBottom: 10 }}>
-                Full Bible Available in the App
-              </div>
-              <div style={{ fontFamily: 'var(--font-cormorant)', color: 'var(--muted)', fontSize: 14, lineHeight: 1.6 }}>
-                This chapter's devotional content is available in the Elovi mobile app.
+          {!loading && error && (
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 24, textAlign: 'center' }}>
+              <div style={{ fontFamily: 'var(--font-cormorant)', color: '#8A9BB5', fontSize: 15, lineHeight: 1.6 }}>
+                {error}
               </div>
             </div>
           )}
 
-          {!loading && verses.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {!loading && !error && verses.length === 0 && (
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 28, textAlign: 'center' }}>
+              <div style={{ fontFamily: 'var(--font-cormorant)', color: '#8A9BB5', fontSize: 15, lineHeight: 1.6 }}>
+                No verses found for this chapter.
+              </div>
+            </div>
+          )}
+
+          {!loading && !error && verses.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {verses.map(v => (
                 <div key={v.verse} style={{ display: 'flex', gap: 12 }}>
-                  <span style={{ fontFamily: 'var(--font-cinzel)', color: 'var(--dim)', fontSize: 10, minWidth: 20, paddingTop: 4 }}>{v.verse}</span>
-                  <div>
-                    <span style={{ fontFamily: 'var(--font-cormorant)', color: 'var(--text)', fontSize: 16, lineHeight: 1.75 }}>
-                      {v.text_en}
-                    </span>
-                    {v.reference && (
-                      <div style={{ fontFamily: 'var(--font-cinzel)', color: 'var(--gold)', fontSize: 9, letterSpacing: '0.1em', marginTop: 4 }}>
-                        {v.reference}
-                      </div>
-                    )}
-                  </div>
+                  <span style={{ fontFamily: 'var(--font-cinzel)', color: 'var(--dim)', fontSize: 10, minWidth: 22, paddingTop: 4, flexShrink: 0 }}>{v.verse}</span>
+                  <span style={{ fontFamily: 'var(--font-cormorant)', color: 'var(--text)', fontSize: 16, lineHeight: 1.8 }}>
+                    {v.text}
+                  </span>
                 </div>
               ))}
             </div>

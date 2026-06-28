@@ -121,7 +121,7 @@ export default function ReflectScreen({ pauseBgm, resumeBgm }: Props) {
 
       {/* World context */}
       {devotional.world_context && (
-        <div style={{ fontFamily: 'var(--font-cormorant)', fontStyle: 'italic', color: 'var(--dim)', fontSize: 14, lineHeight: 1.65, marginBottom: 20 }}>
+        <div style={{ fontFamily: 'var(--font-cormorant)', fontStyle: 'italic', color: '#8A9BB5', fontSize: 14, lineHeight: 1.65, marginBottom: 20 }}>
           {devotional.world_context}
         </div>
       )}
@@ -148,7 +148,7 @@ export default function ReflectScreen({ pauseBgm, resumeBgm }: Props) {
       {devotional.reflection_en && (
         <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, padding: 24, marginBottom: 14 }}>
           <div style={label}>Reflection</div>
-          <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: 15, color: 'var(--text)', lineHeight: 1.75 }}>
+          <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: 15, color: '#C8D8EF', lineHeight: 1.75 }}>
             {devotional.reflection_en}
           </div>
         </div>
@@ -158,7 +158,7 @@ export default function ReflectScreen({ pauseBgm, resumeBgm }: Props) {
       {devotional.prayer_prompt_en && (
         <div style={{ paddingLeft: 20, borderLeft: '2px solid var(--gold)', marginBottom: 14 }}>
           <div style={{ ...label, marginBottom: 8 }}>Prayer</div>
-          <div style={{ fontFamily: 'var(--font-cormorant)', fontStyle: 'italic', fontSize: 15, color: 'var(--text)', lineHeight: 1.75 }}>
+          <div style={{ fontFamily: 'var(--font-cormorant)', fontStyle: 'italic', fontSize: 15, color: '#C8D8EF', lineHeight: 1.75 }}>
             {devotional.prayer_prompt_en}
           </div>
         </div>
