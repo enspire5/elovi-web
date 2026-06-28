@@ -8,6 +8,7 @@ interface Props {
   onBgmToggle: () => void
   pauseBgm: () => void
   resumeBgm: () => void
+  onOpenJournal: () => void
 }
 
 interface DailyVerse {
@@ -66,7 +67,7 @@ const S = {
   },
 }
 
-export default function TodayScreen({ bgmPlaying, onBgmToggle, pauseBgm, resumeBgm }: Props) {
+export default function TodayScreen({ bgmPlaying, onBgmToggle, pauseBgm, resumeBgm, onOpenJournal }: Props) {
   const [content, setContent] = useState<DailyVerse | null>(null)
   const [fontLarge, setFontLarge] = useState(false)
   const [listening, setListening] = useState(false)
@@ -143,10 +144,10 @@ export default function TodayScreen({ bgmPlaying, onBgmToggle, pauseBgm, resumeB
       {/* Sub-header: greeting + controls */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
         <div>
-          <div style={{ fontFamily: 'var(--font-cinzel)', fontSize: 11, letterSpacing: '0.15em', color: 'var(--muted)', textTransform: 'uppercase' }}>
+          <div style={{ fontFamily: 'var(--font-cinzel)', fontSize: 11, letterSpacing: '0.15em', color: '#C8D8EF', textTransform: 'uppercase' }}>
             {greeting()}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--dim)', marginTop: 3 }}>{todayLabel()}</div>
+          <div style={{ fontSize: 11, color: '#8A9BB5', marginTop: 3 }}>{todayLabel()}</div>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <button
@@ -256,8 +257,16 @@ export default function TodayScreen({ bgmPlaying, onBgmToggle, pauseBgm, resumeB
       {content?.journal_prompt_en && (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 20px' }}>
           <div style={{ ...S.label, marginBottom: 8 }}>Journal Prompt</div>
-          <div style={{ fontFamily: 'var(--font-cormorant)', fontStyle: 'italic', color: '#8A9BB5', fontSize: fs - 1, lineHeight: 1.65 }}>
+          <div style={{ fontFamily: 'var(--font-cormorant)', fontStyle: 'italic', color: '#8A9BB5', fontSize: fs - 1, lineHeight: 1.65, marginBottom: 14 }}>
             {content.journal_prompt_en}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              onClick={onOpenJournal}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--gold)', fontFamily: 'var(--font-cinzel)', fontSize: 9, letterSpacing: '0.12em', border: '1px solid var(--gold-border)', borderRadius: 14, padding: '5px 12px', background: 'var(--gold-dim)' }}
+            >
+              Open Journal <span style={{ fontSize: 12 }}>→</span>
+            </button>
           </div>
         </div>
       )}

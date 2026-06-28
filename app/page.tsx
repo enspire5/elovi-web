@@ -19,17 +19,18 @@ const TABS: { id: Tab; icon: string; label: string }[] = [
   { id: 'journal',  icon: '✎', label: 'Journal' },
 ]
 
-const BGM_SRC =
-  'https://upload.wikimedia.org/wikipedia/commons/e/e6/Gymnop%C3%A9die_No._1_%28piano%29.ogg'
+const BGM_OGG = 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Gymnop%C3%A9die_No._1_%28piano%29.ogg'
+const BGM_MP3 = 'https://upload.wikimedia.org/wikipedia/commons/transcoded/e/e6/Gymnop%C3%A9die_No._1_%28piano%29.ogg/Gymnop%C3%A9die_No._1_%28piano%29.ogg.mp3'
 
 export default function App() {
   const [tab, setTab]               = useState<Tab>('today')
   const [bgmPlaying, setBgmPlaying] = useState(false)
   const [installPrompt, setInstallPrompt] = useState<Event | null>(null)
   const [showInstall, setShowInstall]     = useState(false)
-  const audioRef = useRef<HTMLAudioElement>(null)
+  const audioRef        = useRef<HTMLAudioElement>(null)
+  // Tracks whether BGM was playing before a pause so resumeBgm can restore it
+  const bgmWasPlayingRef = useRef(false)
 
-  // Capture PWA install prompt
   useEffect(() => {
     const handler = (e: Event) => {
       e.preventDefault()
@@ -41,14 +42,18 @@ export default function App() {
   }, [])
 
   const pauseBgm = useCallback(() => {
+    bgmWasPlayingRef.current = bgmPlaying
     audioRef.current?.pause()
     setBgmPlaying(false)
-  }, [])
+  }, [bgmPlaying])
 
   const resumeBgm = useCallback(() => {
-    if (!bgmPlaying) return
-    audioRef.current?.play().catch(() => {})
-  }, [bgmPlaying])
+    if (!bgmWasPlayingRef.current) return
+    bgmWasPlayingRef.current = false
+    audioRef.current?.play()
+      .then(() => setBgmPlaying(true))
+      .catch(() => {})
+  }, [])
 
   const toggleBgm = useCallback(() => {
     const audio = audioRef.current
@@ -57,8 +62,9 @@ export default function App() {
       audio.pause()
       setBgmPlaying(false)
     } else {
-      audio.play().catch(() => {})
-      setBgmPlaying(true)
+      audio.play()
+        .then(() => setBgmPlaying(true))
+        .catch(() => {})
     }
   }, [bgmPlaying])
 
@@ -99,7 +105,7 @@ export default function App() {
       )}
 
       {/* Fixed global header */}
-      <header style={{ flexShrink: 0, borderBottom: '1px solid var(--border)', padding: '14px 20px 12px', textAlign: 'center', background: 'var(--bg)' }}>
+      <header style={{ flexShrink: 0, borderBottom: '1px solid rgba(200,168,74,0.35)', padding: '14px 20px 12px', textAlign: 'center', background: 'var(--bg)' }}>
         <div style={{ fontFamily: 'var(--font-cinzel)', color: 'var(--gold)', fontSize: 20, letterSpacing: '0.3em', fontWeight: 600 }}>
           ELOVI
         </div>
@@ -116,6 +122,7 @@ export default function App() {
             onBgmToggle={toggleBgm}
             pauseBgm={pauseBgm}
             resumeBgm={resumeBgm}
+            onOpenJournal={() => switchTab('journal')}
           />
         )}
         {tab === 'bible'    && <BibleScreen />}
@@ -148,8 +155,11 @@ export default function App() {
         })}
       </nav>
 
-      {/* BGM audio */}
-      <audio ref={audioRef} src={BGM_SRC} loop preload="none" />
+      {/* BGM audio — MP3 first for Safari/iOS compatibility, OGG fallback */}
+      <audio ref={audioRef} loop preload="none">
+        <source src={BGM_MP3} type="audio/mpeg" />
+        <source src={BGM_OGG} type="audio/ogg" />
+      </audio>
     </div>
   )
 }

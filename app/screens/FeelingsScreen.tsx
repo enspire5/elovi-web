@@ -28,6 +28,21 @@ const MOODS = [
   { name: 'Angry', emoji: '⚡' },
 ]
 
+const FALLBACK_VERSES: Record<string, { text: string; reference: string }> = {
+  Peaceful: {
+    text: 'Peace I leave with you, my peace I give unto you: not as the world giveth, give I unto you. Let not your heart be troubled, neither let it be afraid.',
+    reference: 'John 14:27',
+  },
+  Doubting: {
+    text: 'Lord, I believe; help thou mine unbelief.',
+    reference: 'Mark 9:24',
+  },
+  Angry: {
+    text: 'A soft answer turneth away wrath: but grievous words stir up anger.',
+    reference: 'Proverbs 15:1',
+  },
+}
+
 const label = {
   fontFamily: 'var(--font-cinzel)',
   fontSize: 9,
@@ -58,7 +73,12 @@ export default function FeelingsScreen({ pauseBgm, resumeBgm }: Props) {
         .eq('mood', mood)
         .order('weight', { ascending: false })
         .limit(5)
-      setVerses((data as MoodVerse[]) ?? [])
+      const rows: MoodVerse[] = (data as MoodVerse[]) ?? []
+      if (rows.length === 0 && FALLBACK_VERSES[mood]) {
+        const fb = FALLBACK_VERSES[mood]
+        rows.push({ id: 'fallback', text_en: fb.text, reference: fb.reference, weight: 1 })
+      }
+      setVerses(rows)
     } catch {}
     setLoading(false)
   }, [selected])
